@@ -1,6 +1,8 @@
 const { VK, Keyboard } = require("vk-io");
 const { HearManager } = require("@vk-io/hear");
 const moment = require("moment");
+const fetch = require("node-fetch");
+
 
 const vk = new VK({
   token:

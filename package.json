@@ -3,6 +3,7 @@
     "@vk-io/hear": "^1.1.1",
     "ascii-table": "^0.0.9",
     "moment": "^2.29.4",
+    "node-fetch": "^2.7.0",
     "text-to-image": "^5.2.0",
     "vk-io": "^4.8.3"
   }
