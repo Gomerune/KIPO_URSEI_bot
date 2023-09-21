@@ -228,5 +228,5 @@ hearCommand("groupSchedule", async (context) => {
     });
   }
 });
-
+console.log("Бот запущен!")
 vk.updates.start().catch(console.error);
