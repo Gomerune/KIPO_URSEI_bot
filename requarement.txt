@@ -2,3 +2,7 @@ vk-io
 vk-io-pages
 moment
 dotenv
+@vk-io/hear
+@vk-io/scenes
+pg
+axios
