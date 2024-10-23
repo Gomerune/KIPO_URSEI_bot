@@ -26,7 +26,7 @@ export default class ScheduleCommand implements ICommand {
                     .row()
                     .callbackButton({
                         label: 'Расписание',
-                        payload: JSON.stringify({ command: 'ScheduleEvent', userID: context.senderId, messageID: message.id, peerID: context.peerId, action: "open_schedule" }),
+                        payload: JSON.stringify({ command: 'ScheduleDisplayEvent', userID: context.senderId, messageID: message.id, peerID: context.peerId, action: "open_schedule" }),
                         color: 'primary'
                     })
                     .row()

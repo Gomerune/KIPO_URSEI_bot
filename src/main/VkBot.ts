@@ -44,7 +44,6 @@ export default class Bot {
                 const payload: IPayloadSchedule = JSON.parse(context.eventPayload);
                 const eventName = payload.command;
                 const event = this.eventManager.getEventByName(eventName);
-
                 if (event) {
                     await event.execute(context, this.db);
                 } else {
