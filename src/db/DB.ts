@@ -42,6 +42,9 @@ export class DB {
                 name TEXT
             )
         `);
+
+       
+        await this.populateGroups();
     }
 
     public async run(query: string, params: any[] = []): Promise<void> {
@@ -84,7 +87,6 @@ export class DB {
         this.db.close();
     }
 
-    // Методы для работы с таблицей users
     public async addUser(user_id: number, username: string): Promise<void> {
         await this.run(`
             INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?)
@@ -103,7 +105,7 @@ export class DB {
         `);
     }
 
-    // Методы для работы с таблицей userGroup
+
     public async addUserGroup(group_id: number, user_id: number): Promise<void> {
         await this.run(`
             INSERT OR IGNORE INTO userGroup (group_id, user_id) VALUES (?, ?)
@@ -116,7 +118,7 @@ export class DB {
         `, [user_id]);
     }
 
-    // Методы для работы с таблицей groups
+
     public async addGroup(group_id: number, name: string): Promise<void> {
         await this.run(`
             INSERT OR IGNORE INTO groups (group_id, name) VALUES (?, ?)
@@ -134,4 +136,62 @@ export class DB {
             SELECT * FROM groups
         `);
     }
+
+    public async getGroupByName(name: string): Promise<IGroup | undefined> {
+        return this.get<IGroup>(`
+            SELECT * FROM groups WHERE name = ?
+        `, [name]);
+    }
+
+    private async populateGroups(): Promise<void> {
+        const url = "https://api.ursei.su/public/schedule/rest/GetGSSchedIniData";
+        try {
+            const response = await fetch(url);
+            const data: Data = await response.json();
+            const groups: Group[] = flattenGroups(data);
+
+            for (const group of groups) {
+                await this.addGroup(group.GS_ID, group.GSName);
+            }
+        } catch (e) {
+            console.error('Ошибка при получении данных:', e);
+        }
+    }
+}
+
+interface Group {
+    GS_ID: number;
+    GSName: string;
+}
+
+interface FormEdu {
+    FormEdu_ID: number;
+    FormEduName: string;
+    arr: Course[];
+}
+
+interface Course {
+    Curs: number;
+    arr: Group[];
+}
+
+interface Data {
+    FormEdu: FormEdu[];
+}
+
+function flattenGroups(data: Data): Group[] {
+    const result: Group[] = [];
+
+    data.FormEdu.forEach(formEdu => {
+        formEdu.arr.forEach(course => {
+            course.arr.forEach(group => {
+                result.push({
+                    GS_ID: group.GS_ID,
+                    GSName: group.GSName
+                });
+            });
+        });
+    });
+
+    return result;
 }

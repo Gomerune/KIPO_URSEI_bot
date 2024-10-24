@@ -9,7 +9,7 @@ export default class StartCommand implements ICommand {
         this.bot = bot;
     }
     
-    name = /^test$/; 
+    name = /^\/test$/; 
     description = 'Стартовое сообщение';
 
     async execute(context: MessageContext): Promise<void> {

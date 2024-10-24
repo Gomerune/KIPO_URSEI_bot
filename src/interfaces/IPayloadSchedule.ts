@@ -1,12 +1,10 @@
-import { MessageContext, MessageEventContext, VK } from "vk-io";
-
 export interface IPayloadSchedule {
     command: string;
-    messageID : string;
-    userID: string;
-    action: string;
-    peerID: string;
-    formEduId: string;
-    courseNumber: string;
+    userID: number;
+    messageID: number;
+    peerID: number;
+    action?: string;
+    formEduID?: number;
+    courseID?: number;
+    groupName?: string;
 }
-

@@ -3,7 +3,7 @@ import { IEvent } from '../../interfaces/IEvent';
 import { IPayloadSchedule } from '../../interfaces/IPayloadSchedule';
 import { DB } from '../../db/DB';
 
-export default class ScheduleDisplayEvent implements IEvent {
+export default class ScheduleCloseEvent implements IEvent {
     public bot: VK;
 
     
@@ -11,27 +11,18 @@ export default class ScheduleDisplayEvent implements IEvent {
         this.bot = bot;
     }
 
-    name = "ScheduleDisplayEvent";
-    description = 'Показывает расписание';
+    name = "ScheduleCloseEvent";
+    description = 'Удаляет сообщение';
 
     async execute(context: MessageEventContext, db: DB): Promise<void> {
         const payload : IPayloadSchedule = JSON.parse(context.eventPayload);
         try {
-            const usergroup = await db.getUserGroups(Number(payload.userID))
-            if(usergroup.length > 0){
-                const message = this.bot.api.messages.edit({
+                await this.bot.api.messages.delete({
                     message_id: Number(payload.messageID),
                     peer_id: Number(payload.peerID),
-                    message: "Здесь будет расписание"
+                    delete_for_all: true
                 })
-            } else {
-                await context.answer({
-                    text: "Вы не выбрали группу в настройках",
-                    type: "show_snackbar"
-                })
-            }
-            
-            
+
         } catch (error) { 
             console.error('Ошибка при выполнении события:', error);
             this.bot.api.messages.edit({

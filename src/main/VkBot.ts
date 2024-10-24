@@ -2,7 +2,7 @@ import { VK } from 'vk-io';
 import { CommandManager } from '../managers/CommandManager';
 import { EventManager } from '../managers/EventManager';
 import { IPayloadSchedule } from '../interfaces/IPayloadSchedule';
-import { DB } from '../db/DB';
+import { DB } from '../db/DB'; 
 
 export default class Bot {
     private vk: VK;
@@ -14,9 +14,9 @@ export default class Bot {
     constructor(token: string, groupId: string) {
         this.vk = new VK({ token });
         this.groupId = groupId;
-        this.commandManager = new CommandManager(this.vk);
-        this.eventManager = new EventManager(this.vk);
         this.db = new DB('./bot.db'); 
+        this.commandManager = new CommandManager(this.vk, this.db);
+        this.eventManager = new EventManager(this.vk);
     }
 
     public async init() {
@@ -44,6 +44,7 @@ export default class Bot {
                 const payload: IPayloadSchedule = JSON.parse(context.eventPayload);
                 const eventName = payload.command;
                 const event = this.eventManager.getEventByName(eventName);
+
                 if (event) {
                     await event.execute(context, this.db);
                 } else {

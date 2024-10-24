@@ -1,3 +1,4 @@
+
 import { CallbackService, Keyboard, MessageContext, VK } from 'vk-io';
 import { ICommand } from '../interfaces/ICommand';
 import { KeyboardBuilder } from 'vk-io';
@@ -32,12 +33,12 @@ export default class ScheduleCommand implements ICommand {
                     .row()
                     .callbackButton({
                         label: 'Настройка',
-                        payload: JSON.stringify({ command: 'Расписание', userID: context.senderId, messageID: message.id,peerID: context.peerId, action: "open_settings" }),
+                        payload: JSON.stringify({ command: 'ScheduleSettingsEvent', userID: context.senderId, messageID: message.id, peerID: context.peerId, action: "settings_schedule" }),
                         color: 'secondary'
                     })
                     .callbackButton({
                         label: 'Отмена',
-                        payload: JSON.stringify({ command: 'Расписание', userID: context.senderId, messageID: message.id, peerID: context.peerId, action: "cancel" }),
+                        payload: JSON.stringify({ command: 'ScheduleCloseEvent', userID: context.senderId, messageID: message.id, peerID: context.peerId, action: "cancel_schedule" }),
                         color: 'negative'
                     });
 
@@ -59,3 +60,4 @@ export default class ScheduleCommand implements ICommand {
 
     }
 }
+    
