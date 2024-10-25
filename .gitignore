@@ -8,7 +8,8 @@
 # Log file
 *.log
 
-*.db
+# DataBase
+bot.db
 
 # BlueJ files
 *.ctxt

@@ -182,7 +182,6 @@ export default class ScheduleDisplayEvent implements IEvent {
         const previousWeekStart = moment(currentDate.startOf('week').add((page - 2) * 7, 'days'));
         const previousWeekEnd = moment(previousWeekStart).endOf('week');
 
-        console.log(`Проверка предыдущей недели: ${previousWeekStart.format('DD.MM.YYYY')} - ${previousWeekEnd.format('DD.MM.YYYY')}`);
 
         let hasPreviousWeek = false;
 
@@ -203,7 +202,6 @@ export default class ScheduleDisplayEvent implements IEvent {
         const nextWeekStart = moment(currentDate.startOf('week').add((page) * 7, 'days'));
         const nextWeekEnd = moment(nextWeekStart).endOf('week');
 
-        console.log(`Проверка следующей недели: ${nextWeekStart.format('DD.MM.YYYY')} - ${nextWeekEnd.format('DD.MM.YYYY')}`);
 
         let hasNextWeek = false;
 

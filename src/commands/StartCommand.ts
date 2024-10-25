@@ -3,7 +3,7 @@ import { ICommand } from '../interfaces/ICommand';
 import { DB } from '../db/DB'; 
 
 export default class StartCommand implements ICommand {
-    public name = /^Старт$/; 
+    public name = /^(Старт|start|Начать|\/start)$/; 
     public description = 'Стартовое сообщение';
     public bot: VK;
     constructor(bot: VK) {

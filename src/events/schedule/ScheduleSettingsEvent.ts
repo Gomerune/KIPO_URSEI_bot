@@ -35,13 +35,13 @@ export default class ScheduleSettingsEvent implements IEvent {
                 .row()
                 .callbackButton({
                     label: 'Присылать расписание',
-                    payload: JSON.stringify({ command: '-', userID: payload.userID, peerID: payload.peerID }),
+                    payload: JSON.stringify({ command: 'DevEduEvent', userID: payload.userID, peerID: payload.peerID }),
                     color: 'secondary'
                 })
                 .row()
                 .callbackButton({
                     label: 'Уведомлять об изменениях',
-                    payload: JSON.stringify({ command: '-', userID: payload.userID, peerID: payload.peerID }),
+                    payload: JSON.stringify({ command: 'DevEduEvent', userID: payload.userID, peerID: payload.peerID }),
                     color: 'secondary'
                 })
                 .row()
