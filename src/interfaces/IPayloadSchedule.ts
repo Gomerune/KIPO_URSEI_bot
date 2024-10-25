@@ -7,4 +7,5 @@ export interface IPayloadSchedule {
     formEduID?: number;
     courseID?: number;
     groupName?: string;
+    page?: number; 
 }

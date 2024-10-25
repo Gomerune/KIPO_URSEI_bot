@@ -73,16 +73,45 @@ export default class SelectGroupEvent implements IEvent {
                 return;
             }
 
+            const groups = course.arr;
+            const pageSize = 5;
+            const totalPages = Math.ceil(groups.length / pageSize);
+
+            const page = payload.page || 1;
+
+            const startIndex = (page - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+
             const keyboard = new KeyboardBuilder()
                 .inline();
 
-            course.arr.forEach(group => {
-                keyboard.textButton({
+            groups.slice(startIndex, endIndex).forEach(group => {
+                keyboard.callbackButton({
                     label: group.GSName,
                     payload: JSON.stringify({ command: 'SaveGroupEvent', userID: payload.userID, peerID: payload.peerID, messageID: payload.messageID, groupName: group.GSName }),
                     color: 'primary'
                 }).row();
             });
+
+            if (totalPages > 1) {
+                const navigationRow = keyboard.row();
+
+                if (page > 1) {
+                    navigationRow.callbackButton({
+                        label: '⬅️',
+                        payload: JSON.stringify({ command: 'SelectGroupEvent', userID: payload.userID, peerID: payload.peerID, messageID: payload.messageID, formEduID: payload.formEduID, courseID: payload.courseID, page: page - 1 }),
+                        color: 'secondary'
+                    });
+                }
+
+                if (page < totalPages) {
+                    navigationRow.callbackButton({
+                        label: '➡️',
+                        payload: JSON.stringify({ command: 'SelectGroupEvent', userID: payload.userID, peerID: payload.peerID, messageID: payload.messageID, formEduID: payload.formEduID, courseID: payload.courseID, page: page + 1 }),
+                        color: 'secondary'
+                    });
+                }
+            }
 
             await this.bot.api.messages.edit({
                 message_id: Number(payload.messageID),

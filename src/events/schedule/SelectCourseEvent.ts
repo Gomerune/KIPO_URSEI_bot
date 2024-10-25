@@ -66,7 +66,7 @@ export default class SelectCourseEvent implements IEvent {
                 .inline();
 
             formEdu.arr.forEach(course => {
-                keyboard.textButton({
+                keyboard.callbackButton({
                     label: `Курс ${course.Curs}`,
                     payload: JSON.stringify({ command: 'SelectGroupEvent', userID: payload.userID, peerID: payload.peerID, messageID: payload.messageID, formEduID: payload.formEduID, courseID: course.Curs }),
                     color: 'primary'

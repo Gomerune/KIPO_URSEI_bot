@@ -16,8 +16,15 @@ export default class ScheduleSettingsEvent implements IEvent {
     async execute(context: MessageEventContext, db: DB): Promise<void> {
         const payload: IPayloadSchedule = JSON.parse(context.eventPayload);
         try {
-            const userGroups = await db.getUserGroups(Number(payload.userID));
-            const group = userGroups.length > 0 ? await db.getGroupById(userGroups[0].group_id) : null;
+            const group = [];
+            const user = await db.getUserById(payload.userID)
+            if(user) {
+                const userGroups = await db.getUserGroups(user.id);
+                if(userGroups.length > 0) {  
+                    group.push(await db.getGroupById(userGroups[0].group_id)) ;
+                }
+            }
+        
 
             const keyboard = new KeyboardBuilder()
                 .callbackButton({
@@ -40,16 +47,16 @@ export default class ScheduleSettingsEvent implements IEvent {
                 .row()
                 .callbackButton({
                     label: 'Назад',
-                    payload: JSON.stringify({ command: 'ScheduleBackEvent', userID: context.senderId, messageID: payload.messageID, peerID: context.peerId, action: "-" }),
+                    payload: JSON.stringify({ command: 'ScheduleBackEvent', userID: payload.userID, messageID: payload.messageID, peerID: context.peerId, action: "-" }),
                     color: ButtonColor.NEGATIVE
                 });
 
-
+                
             const message = await this.bot.api.messages.edit({
                 message_id: Number(payload.messageID),
                 peer_id: Number(payload.peerID),
                 message: "Настройки расписания:\n" +
-                    "1. Ваша группа: " + (group ? group.name : "Не найдена") + "\n" +
+                    "1. Ваша группа: " + (group.length > 0 ? group[0]?.name : "Не найдена") + "\n" +
                     "2. Присылать расписание: " + "Нет" + "\n" +
                     "3. Уведомлять об изменениях: " + "Нет" + "\n",
                 keyboard: keyboard.inline()

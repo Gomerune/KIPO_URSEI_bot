@@ -19,14 +19,13 @@ export class DB {
     private async init(): Promise<void> {
         await this.run(`
             CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL UNIQUE,
+                id INTEGER PRIMARY KEY NOT NULL UNIQUE,
                 username TEXT
             )
         `);
 
         await this.run(`
-            CREATE TABLE IF NOT EXISTS userGroup (
+            CREATE TABLE IF NOT EXISTS user_group (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 group_id INTEGER NOT NULL,
                 user_id INTEGER NOT NULL,
@@ -37,13 +36,11 @@ export class DB {
 
         await this.run(`
             CREATE TABLE IF NOT EXISTS groups (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                group_id INTEGER NOT NULL UNIQUE,
+                id INTEGER PRIMARY KEY NOT NULL UNIQUE,
                 name TEXT
             )
         `);
 
-       
         await this.populateGroups();
     }
 
@@ -87,16 +84,16 @@ export class DB {
         this.db.close();
     }
 
-    public async addUser(user_id: number, username: string): Promise<void> {
+    public async addUser(id: number, username: string): Promise<void> {
         await this.run(`
-            INSERT OR IGNORE INTO users (user_id, username) VALUES (?, ?)
-        `, [user_id, username]);
+            INSERT OR IGNORE INTO users (id, username) VALUES (?, ?)
+        `, [id, username]);
     }
 
-    public async getUserById(user_id: number): Promise<IUser | undefined> {
+    public async getUserById(id: number): Promise<IUser | undefined> {
         return this.get<IUser>(`
-            SELECT * FROM users WHERE user_id = ?
-        `, [user_id]);
+            SELECT * FROM users WHERE id = ?
+        `, [id]);
     }
 
     public async getAllUsers(): Promise<IUser[]> {
@@ -105,30 +102,28 @@ export class DB {
         `);
     }
 
-
     public async addUserGroup(group_id: number, user_id: number): Promise<void> {
         await this.run(`
-            INSERT OR IGNORE INTO userGroup (group_id, user_id) VALUES (?, ?)
+            INSERT OR IGNORE INTO user_group (group_id, user_id) VALUES (?, ?)
         `, [group_id, user_id]);
     }
 
     public async getUserGroups(user_id: number): Promise<IUserGroup[]> {
         return this.all<IUserGroup>(`
-            SELECT * FROM userGroup WHERE user_id = ?
+            SELECT * FROM user_group WHERE user_id = ?
         `, [user_id]);
     }
 
-
-    public async addGroup(group_id: number, name: string): Promise<void> {
+    public async addGroup(id: number, name: string): Promise<void> {
         await this.run(`
-            INSERT OR IGNORE INTO groups (group_id, name) VALUES (?, ?)
-        `, [group_id, name]);
+            INSERT OR IGNORE INTO groups (id, name) VALUES (?, ?)
+        `, [id, name]);
     }
 
-    public async getGroupById(group_id: number): Promise<IGroup | undefined> {
+    public async getGroupById(id: number): Promise<IGroup | undefined> {
         return this.get<IGroup>(`
-            SELECT * FROM groups WHERE group_id = ?
-        `, [group_id]);
+            SELECT * FROM groups WHERE id = ?
+        `, [id]);
     }
 
     public async getAllGroups(): Promise<IGroup[]> {

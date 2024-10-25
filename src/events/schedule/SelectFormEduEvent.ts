@@ -55,7 +55,7 @@ export default class SelectFormEduEvent implements IEvent {
                 .inline();
 
             data.FormEdu.forEach(formEdu => {
-                keyboard.textButton({
+                keyboard.callbackButton({
                     label: formEdu.FormEduName,
                     payload: JSON.stringify({ command: 'SelectCourseEvent', userID: payload.userID, peerID: payload.peerID, messageID: payload.messageID, formEduID: formEdu.FormEdu_ID }),
                     color: 'primary'

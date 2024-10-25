@@ -3,7 +3,7 @@ import { ICommand } from '../interfaces/ICommand';
 import { DB } from '../db/DB'; 
 
 export default class StartCommand implements ICommand {
-    public name = /^\/Старт$/; 
+    public name = /^Старт$/; 
     public description = 'Стартовое сообщение';
     public bot: VK;
     constructor(bot: VK) {
@@ -39,6 +39,17 @@ export default class StartCommand implements ICommand {
                 } else {
                     await context.send('Не удалось получить информацию о пользователе.');
                 }
+            } else {
+                const keyboard = new KeyboardBuilder()
+                    .textButton({
+                        label: 'Расписание',
+                    })
+                    
+                    
+                    await context.send({
+                        message: `Добро пожаловать! Используй кнопки ниже и ты сможешь получить то, что хочешь.`,
+                        keyboard
+                    });
             }
         } catch (error) {
             console.error('Ошибка при выполнении команды:', error);

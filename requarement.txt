@@ -6,3 +6,4 @@ dotenv
 @vk-io/scenes
 pg
 axios
+node-cron

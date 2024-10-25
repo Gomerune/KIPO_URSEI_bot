@@ -22,13 +22,23 @@ export default class SaveGroupEvent implements IEvent {
                 const group = await db.getGroupByName(groupName);
 
                 if (group) {
-                    await db.addUserGroup(group.id, context.senderId);
+                    const member = await db.getUserById(payload.userID);
+                    if (member){
+                        await db.addUserGroup(group.id, member.id);
 
-                    await this.bot.api.messages.edit({
-                        message_id: Number(payload.messageID),
-                        peer_id: Number(payload.peerID),
-                        message: `Группа "${groupName}" успешно сохранена.`
-                    });
+                        await this.bot.api.messages.edit({
+                            message_id: Number(payload.messageID),
+                            peer_id: Number(payload.peerID),
+                            message: `Группа "${groupName}" успешно сохранена.`
+                        });
+                    } else {
+                        await this.bot.api.messages.edit({
+                            message_id: Number(payload.messageID),
+                            peer_id: Number(payload.peerID),
+                            message: "Вы не зарегистрированы в системе. Напишите еще раз '/Старт'"
+                        });
+                    }
+                    
                 } else {
                     await this.bot.api.messages.edit({
                         message_id: Number(payload.messageID),
