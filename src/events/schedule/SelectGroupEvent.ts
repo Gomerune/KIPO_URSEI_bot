@@ -1,27 +1,9 @@
+
 import { MessageEventContext, VK, KeyboardBuilder } from 'vk-io';
-import { IEvent } from '../../interfaces/IEvent';
-import { IPayloadSchedule } from '../../interfaces/IPayloadSchedule';
+import { IEvent } from '../../interfaces/main/IEvent';
+import { IPayloadSchedule } from '../../interfaces/main/IPayloadSchedule';
 import { DB } from '../../db/DB';
-
-interface FormEdu {
-    FormEdu_ID: number;
-    FormEduName: string;
-    arr: Course[];
-}
-
-interface Course {
-    Curs: number;
-    arr: Group[];
-}
-
-interface Group {
-    GS_ID: number;
-    GSName: string;
-}
-
-interface Data {
-    FormEdu: FormEdu[];
-}
+import { IAPIData } from '../../interfaces/UresiAPI/IAPIData';
 
 export default class SelectGroupEvent implements IEvent {
     public bot: VK;
@@ -33,11 +15,11 @@ export default class SelectGroupEvent implements IEvent {
     name = "SelectGroupEvent";
     description = 'Выбор группы';
 
-    async execute(context: MessageEventContext, db: DB): Promise<void> {
+    async execute(context: MessageEventContext): Promise<void> {
         const payload: IPayloadSchedule = JSON.parse(context.eventPayload);
         try {
             const url = "https://api.ursei.su/public/schedule/rest/GetGSSchedIniData";
-            let data: Data = { FormEdu: [] };
+            let data: IAPIData = { FormEdu: [] };
             try {
                 const response = await fetch(url);
                 data = await response.json();
@@ -88,7 +70,7 @@ export default class SelectGroupEvent implements IEvent {
             groups.slice(startIndex, endIndex).forEach(group => {
                 keyboard.callbackButton({
                     label: group.GSName,
-                    payload: JSON.stringify({ command: 'SaveGroupEvent', userID: payload.userID, peerID: payload.peerID, messageID: payload.messageID, groupName: group.GSName }),
+                    payload: JSON.stringify({ command: 'SaveGroupEvent', userID: payload.userID, peerID: payload.peerID, messageID: payload.messageID, groupName: group.GSName, groupID: group.GS_ID }),
                     color: 'primary'
                 }).row();
             });
@@ -129,3 +111,4 @@ export default class SelectGroupEvent implements IEvent {
         }
     }
 }
+    

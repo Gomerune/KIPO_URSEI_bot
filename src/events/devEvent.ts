@@ -1,5 +1,5 @@
 import { MessageEventContext, VK, KeyboardBuilder } from 'vk-io';
-import { IEvent } from '../interfaces/IEvent';
+import { IEvent } from '../interfaces/main/IEvent';
 
 
 export default class DevEduEvent implements IEvent {
@@ -10,7 +10,6 @@ export default class DevEduEvent implements IEvent {
     }
 
     name = "DevEduEvent";
-    description = 'Сказать о том что не работает еще';
 
     async execute(context: MessageEventContext): Promise<void> {
         await context.answer({

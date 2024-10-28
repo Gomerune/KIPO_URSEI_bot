@@ -1,3 +1,0 @@
-interface FormEduData {
-    FormEdu: FormEdu[];
-}

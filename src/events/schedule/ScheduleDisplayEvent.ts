@@ -1,52 +1,38 @@
+
 import { MessageEventContext, VK, KeyboardBuilder } from 'vk-io';
-import { IEvent } from '../../interfaces/IEvent';
-import { IPayloadSchedule } from '../../interfaces/IPayloadSchedule';
-import { DB } from '../../db/DB';
-
+import { IEvent } from '../../interfaces/main/IEvent';
 import moment from 'moment';
+import { IPayloadSchedule } from '../../interfaces/main/IPayloadSchedule';
+import { DBUsers } from '../../db/Schemas/DBUsers'; 
+import { DBGroups } from '../../db/Schemas/DBGroups'; 
+import { DBUserGroup } from '../../db/Schemas/DBUserGroup';
+import { IAPIScheduleMonth } from '../../interfaces/UresiAPI/IAPIScheduleMonth';
+import { IAPIDaySchedule } from '../../interfaces/UresiAPI/IAPIDaySchedule';
+import { IAPIMonth } from '../../interfaces/UresiAPI/IAPIMonth';
+import { IAPILesson } from '../../interfaces/UresiAPI/IAPILesson';
 
-export interface Schedule {
-    Month: Month[];
-}
-
-export interface Month {
-    Name: string;
-    Numb: number;
-    Sched: DaySchedule[];
-}
-
-export interface DaySchedule {
-    datePair: string;
-    dayWeek: string;
-    dayWeekShort: string;
-    mainSchedule: Lesson[];
-}
-
-export interface Lesson {
-    TimeStart: string;
-    SubjName: string;
-    SubjSN: string;
-    LoadKindSN: string;
-    FIO: string;
-    Aud: string;
-}
 
 export default class ScheduleDisplayEvent implements IEvent {
     public bot: VK;
+    private dbUsers: DBUsers; 
+    private dbGroups: DBGroups;
+    private dbUserGroup: DBUserGroup; 
 
     constructor(bot: VK) {
         this.bot = bot;
+        this.dbUsers = new DBUsers();
+        this.dbGroups = new DBGroups(); 
+        this.dbUserGroup = new DBUserGroup(); 
     }
 
     name = "ScheduleDisplayEvent";
-    description = 'Показывает расписание';
 
-    async execute(context: MessageEventContext, db: DB): Promise<void> {
+    async execute(context: MessageEventContext): Promise<void> {
         const payload: IPayloadSchedule = JSON.parse(context.eventPayload);
         try {
-            const usergroup = await db.getUserGroups(Number(payload.userID));
-            if (usergroup.length > 0) {
-                const group_id = usergroup[0].group_id;
+            const usergroup = await this.dbUserGroup.getData(Number(payload.userID))
+            if (usergroup) {
+                const group_id = usergroup.group_id;
                 const schedule = await this.fetchSchedule(group_id);
                 if (schedule) {
                     const currentWeekSchedule = await this.getCurrentWeekSchedule(schedule, payload.page || 1);
@@ -82,13 +68,13 @@ export default class ScheduleDisplayEvent implements IEvent {
         }
     }
 
-    private async fetchSchedule(group_id: number): Promise<Schedule> {
+    private async fetchSchedule(group_id: number): Promise<IAPIScheduleMonth> {
         const url = `https://api.ursei.su/public/schedule/rest/GetGsSched?grpid=${group_id}`;
         const response = await fetch(url);
         return await response.json();
     }
 
-    private async getCurrentWeekSchedule(schedule: Schedule, page: number): Promise<DaySchedule[]> {
+    private async getCurrentWeekSchedule(schedule: IAPIScheduleMonth, page: number): Promise<IAPIDaySchedule[]> {
         moment.updateLocale('ru', {
             week: {
                 dow : 1,
@@ -99,10 +85,10 @@ export default class ScheduleDisplayEvent implements IEvent {
         const currentWeekEnd = moment(currentWeekStart).endOf('week');
  
     
-        const currentWeekSchedule: DaySchedule[] = [];
+        const currentWeekSchedule: IAPIDaySchedule[] = [];
     
-        schedule.Month.forEach((month: Month) => {
-            month.Sched.forEach((day: DaySchedule) => {
+        schedule.Month.forEach((month: IAPIMonth) => {
+            month.Sched.forEach((day: IAPIDaySchedule) => {
                 const dayDate = moment(day.datePair, 'DD.MM.YYYY');
                 if (dayDate.isBetween(currentWeekStart, currentWeekEnd, null, '[]')) {
                     currentWeekSchedule.push(day);
@@ -114,18 +100,22 @@ export default class ScheduleDisplayEvent implements IEvent {
         return currentWeekSchedule;
     }
 
-    private formatScheduleMessage(schedule: DaySchedule[]): string {
+    private formatScheduleMessage(schedule: IAPIDaySchedule[]): string {
         const currentDate = moment();
         let message = '';
+
+        if (schedule.length === 0) {
+            return "На этой недели нет пар"
+        }
     
-        schedule.forEach((day: DaySchedule) => {
+        schedule.forEach((day: IAPIDaySchedule) => {
             const dayDate = moment(day.datePair, 'DD.MM.YYYY');
             const isToday = dayDate.isSame(currentDate, 'day');
     
             message += `\n${isToday ? '-->' : ''} ${day.dayWeek}, ${day.datePair}:\n`;
         
     
-            day.mainSchedule.forEach((lesson: Lesson) => {
+            day.mainSchedule.forEach((lesson: IAPILesson) => {
                 const time = lesson.TimeStart;
                 const subject = this.abbreviateSubject(lesson.SubjName);
                 const loadKind = lesson.LoadKindSN.substring(0, 5).padEnd(5, ' ');
@@ -147,7 +137,7 @@ export default class ScheduleDisplayEvent implements IEvent {
         return abbreviatedSubject.length > 14 ? abbreviatedSubject.substring(0, 14) : abbreviatedSubject;
     }
 
-    private createKeyboard(schedule: Schedule, payload: IPayloadSchedule): KeyboardBuilder {
+    private createKeyboard(schedule: IAPIScheduleMonth, payload: IPayloadSchedule): KeyboardBuilder {
         const keyboard = new KeyboardBuilder()
 
         const navigationRow = keyboard.row();
@@ -177,7 +167,7 @@ export default class ScheduleDisplayEvent implements IEvent {
         return keyboard;
     }
 
-    private hasPreviousWeek(schedule: Schedule, page: number): boolean {
+    private hasPreviousWeek(schedule: IAPIScheduleMonth, page: number): boolean {
         const currentDate = moment();
         const previousWeekStart = moment(currentDate.startOf('week').add((page - 2) * 7, 'days'));
         const previousWeekEnd = moment(previousWeekStart).endOf('week');
@@ -185,8 +175,8 @@ export default class ScheduleDisplayEvent implements IEvent {
 
         let hasPreviousWeek = false;
 
-        schedule.Month.forEach((month: Month) => {
-            month.Sched.forEach((day: DaySchedule) => {
+        schedule.Month.forEach((month: IAPIMonth) => {
+            month.Sched.forEach((day: IAPIDaySchedule) => {
                 const dayDate = moment(day.datePair, 'DD.MM.YYYY');
                 if (dayDate.isBetween(previousWeekStart, previousWeekEnd, null, '[]')) {
                     hasPreviousWeek = true;
@@ -197,7 +187,7 @@ export default class ScheduleDisplayEvent implements IEvent {
         return hasPreviousWeek;
     }
 
-    private hasNextWeek(schedule: Schedule, page: number): boolean {
+    private hasNextWeek(schedule: IAPIScheduleMonth, page: number): boolean {
         const currentDate = moment();
         const nextWeekStart = moment(currentDate.startOf('week').add((page) * 7, 'days'));
         const nextWeekEnd = moment(nextWeekStart).endOf('week');
@@ -205,8 +195,8 @@ export default class ScheduleDisplayEvent implements IEvent {
 
         let hasNextWeek = false;
 
-        schedule.Month.forEach((month: Month) => {
-            month.Sched.forEach((day: DaySchedule) => {
+        schedule.Month.forEach((month: IAPIMonth) => {
+            month.Sched.forEach((day: IAPIDaySchedule) => {
                 const dayDate = moment(day.datePair, 'DD.MM.YYYY');
                 if (dayDate.isBetween(nextWeekStart, nextWeekEnd, null, '[]')) {
                     hasNextWeek = true;
@@ -217,3 +207,9 @@ export default class ScheduleDisplayEvent implements IEvent {
         return hasNextWeek;
     }
 }
+      
+    
+
+
+
+  

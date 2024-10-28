@@ -7,3 +7,5 @@ dotenv
 pg
 axios
 node-cron
+cli-table3
+cli-progress

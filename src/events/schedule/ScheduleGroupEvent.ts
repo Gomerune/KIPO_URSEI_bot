@@ -1,6 +1,7 @@
+
 import { MessageEventContext, VK } from 'vk-io';
-import { IEvent } from '../../interfaces/IEvent';
-import { IPayloadSchedule } from '../../interfaces/IPayloadSchedule';
+import { IEvent } from '../../interfaces/main/IEvent';
+import { IPayloadSchedule } from '../../interfaces/main/IPayloadSchedule';
 import { DB } from '../../db/DB';
 import SelectFormEduEvent from './SelectFormEduEvent';
 
@@ -12,9 +13,9 @@ export default class ScheduleGroupEvent implements IEvent {
     }
 
     name = "ScheduleGroupEvent";
-    description = 'Выбор или изменение группы';
 
-    async execute(context: MessageEventContext, db: DB): Promise<void> {
+
+    async execute(context: MessageEventContext): Promise<void> {
         const payload: IPayloadSchedule = JSON.parse(context.eventPayload);
         try {
             await this.bot.api.messages.edit({
@@ -25,7 +26,7 @@ export default class ScheduleGroupEvent implements IEvent {
 
      
             const selectFormEduEvent = new SelectFormEduEvent(this.bot);
-            await selectFormEduEvent.execute(context, db);
+            await selectFormEduEvent.execute(context);
         } catch (error: any) {
             console.error('Ошибка при выполнении события:', error);
             await this.bot.api.messages.edit({
@@ -36,3 +37,4 @@ export default class ScheduleGroupEvent implements IEvent {
         }
     }
 }
+    

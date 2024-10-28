@@ -2,6 +2,8 @@
   "dependencies": {
     "@vk-io/hear": "^1.1.1",
     "ascii-table": "^0.0.9",
+    "cli-progress": "^3.12.0",
+    "cli-table3": "^0.6.5",
     "dotenv": "^16.4.5",
     "moment": "^2.29.4",
     "node-cron": "^3.0.3",
@@ -26,6 +28,7 @@
     "prepare": "husky install"
   },
   "devDependencies": {
+    "@types/cli-progress": "^3.11.6",
     "@types/jest": "^29.5.13",
     "@types/node-cron": "^3.0.11",
     "eslint": "^9.13.0",

@@ -1,44 +1,47 @@
-
 import { CallbackService, Keyboard, MessageContext, VK } from 'vk-io';
-import { ICommand } from '../interfaces/ICommand';
+import { ICommand } from '../interfaces/main/ICommand';
 import { KeyboardBuilder } from 'vk-io';
 import { AccountChecker } from '../main/AccountChecker';
-import { DB } from '../db/DB';
+import { DBUsers } from '../db/Schemas/DBUsers'; 
 
 export default class ScheduleCommand implements ICommand {
     private accountChecker: AccountChecker;
     public bot: VK;
+    private dbUsers: DBUsers; 
 
     constructor(bot: VK) {
         this.bot = bot;
         this.accountChecker = new AccountChecker(bot);
+        this.dbUsers = new DBUsers();
     }
 
-    name = /^Расписание$/;
+    name = "Расписание";
+    call = /^Расписание$/;
     description = 'Показывает расписание';
 
-    async execute(context: MessageContext, db: DB): Promise<void> {
-
-        const message = await context.send("Загрузка...")
+    async execute(context: MessageContext): Promise<void> {
+        const message = await context.send("Загрузка...");
 
         try {
             if (await this.accountChecker.checkAccount(context.senderId)) {
-
-                if (!await db.getUserById(context.senderId)) {
+                if (!await this.dbUsers.getData(String(context.senderId))) {
                     const userInfo = await this.bot.api.users.get({
                         user_ids: [context.senderId]
                     });
-    
+
                     if (userInfo.length > 0) {
                         const firstName = userInfo[0].first_name;
                         const lastName = userInfo[0].last_name;
                         const username = `${firstName} ${lastName}`;
-    
-                        await db.addUser(context.senderId, username);
+
+                        await this.dbUsers.addData({
+                            id: context.senderId,
+                            username: username,
+                        });
                     } else {
                         await context.send('Не удалось получить информацию о пользователе.');
                     }
-                    }
+                }
 
                 const keyboard = new KeyboardBuilder()
                     .inline()
@@ -75,7 +78,5 @@ export default class ScheduleCommand implements ICommand {
                 message: "Произошла ошибка при обработке команды."
             });
         }
-
     }
 }
-    

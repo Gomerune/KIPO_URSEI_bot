@@ -1,5 +1,5 @@
 import { MessageEventContext, VK } from 'vk-io';
-import { IEvent } from '../interfaces/IEvent';
+import { IEvent } from '../interfaces/main/IEvent';
 
 export default class TestEvent implements IEvent {
     public bot: VK;
@@ -9,7 +9,6 @@ export default class TestEvent implements IEvent {
     }
 
     name = "TestEvent";
-    description = 'Тестовое событие';
 
     async execute(context: MessageEventContext): Promise<void> {
         try {

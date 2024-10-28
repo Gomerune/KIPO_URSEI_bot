@@ -1,18 +1,24 @@
 import { KeyboardBuilder, MessageContext, VK } from 'vk-io';
-import { ICommand } from '../interfaces/ICommand';
-import { DB } from '../db/DB'; 
+import { ICommand } from '../interfaces/main/ICommand';
+import { DBUsers } from '../db/Schemas/DBUsers'; 
+import { IDBUser } from '../interfaces/DB/DBUser';
 
 export default class StartCommand implements ICommand {
-    public name = /^(Старт|start|Начать|\/start)$/; 
+    public name = "Старт"
+    public call = /^(Старт|start|Начать|\/start|В начало)$/;
     public description = 'Стартовое сообщение';
     public bot: VK;
+    private dbUsers: DBUsers; 
+
     constructor(bot: VK) {
         this.bot = bot;
+        this.dbUsers = new DBUsers(); 
     }
 
-    public async execute(context: MessageContext, db: DB): Promise<void> {
+    public async execute(context: MessageContext): Promise<void> {
         try {
-            if (!await db.getUserById(context.senderId)) {
+      
+            if (!await this.dbUsers.getData(String(context.senderId))) {
                 const userInfo = await this.bot.api.users.get({
                     user_ids: [context.senderId]
                 });
@@ -22,20 +28,20 @@ export default class StartCommand implements ICommand {
                     const lastName = userInfo[0].last_name;
                     const username = `${firstName} ${lastName}`;
 
-                    await db.addUser(context.senderId, username);
-
+                    await this.dbUsers.addData({
+                        id: context.senderId,
+                        username : username,
+                    });
 
                     const keyboard = new KeyboardBuilder()
-                    .textButton({
-                        label: 'Расписание',
-                    })
-                    
-                    
+                        .textButton({
+                            label: 'Расписание',
+                        });
+
                     await context.send({
                         message: `Добро пожаловать! Используй кнопки ниже и ты сможешь получить то, что хочешь.`,
                         keyboard
                     });
-
                 } else {
                     await context.send('Не удалось получить информацию о пользователе.');
                 }
@@ -43,13 +49,12 @@ export default class StartCommand implements ICommand {
                 const keyboard = new KeyboardBuilder()
                     .textButton({
                         label: 'Расписание',
-                    })
-                    
-                    
-                    await context.send({
-                        message: `Добро пожаловать! Используй кнопки ниже и ты сможешь получить то, что хочешь.`,
-                        keyboard
                     });
+
+                await context.send({
+                    message: `Добро пожаловать! Используй кнопки ниже и ты сможешь получить то, что хочешь.`,
+                    keyboard
+                });
             }
         } catch (error) {
             console.error('Ошибка при выполнении команды:', error);

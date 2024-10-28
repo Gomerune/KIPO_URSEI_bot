@@ -1,5 +1,5 @@
 import {  MessageContext, VK } from 'vk-io';
-import { ICommand } from '../interfaces/ICommand';
+import { ICommand } from '../interfaces/main/ICommand';
 import { KeyboardBuilder } from 'vk-io';
 
 
@@ -9,7 +9,8 @@ export default class StartCommand implements ICommand {
         this.bot = bot;
     }
     
-    name = /^\/test$/; 
+    name = "Test";
+    call = /^\/test$/;
     description = 'Стартовое сообщение';
 
     async execute(context: MessageContext): Promise<void> {

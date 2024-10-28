@@ -1,6 +1,7 @@
+
 import { MessageEventContext, VK, KeyboardBuilder } from 'vk-io';
-import { IEvent } from '../../interfaces/IEvent';
-import { IPayloadSchedule } from '../../interfaces/IPayloadSchedule';
+import { IEvent } from '../../interfaces/main/IEvent';
+import { IPayloadSchedule } from '../../interfaces/main/IPayloadSchedule';
 import { DB } from '../../db/DB';
 
 export default class ScheduleBackEvent implements IEvent {
@@ -11,9 +12,8 @@ export default class ScheduleBackEvent implements IEvent {
     }
 
     name = "ScheduleBackEvent";
-    description = 'Возврат к предыдущему меню';
 
-    async execute(context: MessageEventContext, db: DB): Promise<void> {
+    async execute(context: MessageEventContext): Promise<void> {
         const payload: IPayloadSchedule = JSON.parse(context.eventPayload);
         try {
             const keyboard = new KeyboardBuilder()
@@ -32,7 +32,7 @@ export default class ScheduleBackEvent implements IEvent {
                 })
                 .callbackButton({
                     label: 'Отмена',
-                    payload: JSON.stringify({ command: 'ScheduleCloseEvent', userID: payload.userID, messageID: payload.messageID, peerID: payload.peerID, action: "cancel_schedule" }),
+                    payload: JSON.stringify({ command: 'CloseEvent', userID: payload.userID, messageID: payload.messageID, peerID: payload.peerID, action: "cancel_schedule" }),
                     color: 'negative'
                 });
 
@@ -52,3 +52,4 @@ export default class ScheduleBackEvent implements IEvent {
         }
     }
 }
+    

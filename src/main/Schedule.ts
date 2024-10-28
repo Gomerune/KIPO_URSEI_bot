@@ -1,7 +1,12 @@
-export class Schedule {
-    private formEduData: FormEduData;
+import { IAPICourse } from "../interfaces/UresiAPI/IAPICourse";
+import { IAPIFormEdu } from "../interfaces/UresiAPI/IAPIFormEdu";
+import { IAPIFormEduData } from "../interfaces/UresiAPI/IAPIFormEduData";
+import { IAPIGroup } from "../interfaces/UresiAPI/IAPIGroup";
 
-    private constructor(formEduData: FormEduData) {
+export class Schedule {
+    private formEduData: IAPIFormEduData;
+
+    private constructor(formEduData: IAPIFormEduData) {
         this.formEduData = formEduData;
     }
 
@@ -11,7 +16,7 @@ export class Schedule {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const data: FormEduData = await response.json();
+            const data: IAPIFormEduData = await response.json();
             return new Schedule(data);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -19,26 +24,26 @@ export class Schedule {
         }
     }
 
-    getAllFormsEdu(): FormEdu[] {
+    getAllFormsEdu(): IAPIFormEdu[] {
         return this.formEduData.FormEdu;
     }
 
-    getFormEduById(formEduId: number): FormEdu | undefined {
+    getFormEduById(formEduId: number): IAPIFormEdu | undefined {
         return this.formEduData.FormEdu.find(form => form.FormEdu_ID === formEduId);
     }
 
-    getCoursesByFormEduId(formEduId: number): Course[] | undefined {
+    getCoursesByFormEduId(formEduId: number): IAPICourse[] | undefined {
         const formEdu = this.getFormEduById(formEduId);
         return formEdu ? formEdu.arr : undefined;
     }
 
-    getGroupsByFormEduIdAndCourse(formEduId: number, courseNumber: number): Group[] | undefined {
+    getGroupsByFormEduIdAndCourse(formEduId: number, courseNumber: number): IAPIGroup[] | undefined {
         const courses = this.getCoursesByFormEduId(formEduId);
         const course = courses?.find(course => course.Curs === courseNumber);
         return course ? course.arr : undefined;
     }
 
-    getGroupById(groupId: number): Group | undefined {
+    getGroupById(groupId: number): IAPIGroup | undefined {
         for (const formEdu of this.formEduData.FormEdu) {
             for (const course of formEdu.arr) {
                 const group = course.arr.find(group => group.GS_ID === groupId);
@@ -50,8 +55,8 @@ export class Schedule {
         return undefined;
     }
 
-    getAllGroups(): Group[] {
-        const groups: Group[] = [];
+    getAllGroups(): IAPIGroup[] {
+        const groups: IAPIGroup[] = [];
         for (const formEdu of this.formEduData.FormEdu) {
             for (const course of formEdu.arr) {
                 groups.push(...course.arr);

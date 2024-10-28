@@ -1,3 +1,4 @@
+import { CONSTRAINT } from 'sqlite3/lib/sqlite3';
 import { VK } from 'vk-io';
 
 export class AccountChecker {
@@ -14,9 +15,7 @@ export class AccountChecker {
                 user_id: memberId,
             });
 
-            //return response.member === 1;
-            //console.log(response);
-            return true;
+            return Boolean(response);
         } catch (error) {
             console.error('Ошибка при проверке подписки:', error);
             return false;

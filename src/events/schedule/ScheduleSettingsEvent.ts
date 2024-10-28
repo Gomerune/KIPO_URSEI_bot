@@ -1,31 +1,43 @@
 import { MessageEventContext, VK, KeyboardBuilder, ButtonColor } from 'vk-io';
-import { IEvent } from '../../interfaces/IEvent';
-import { IPayloadSchedule } from '../../interfaces/IPayloadSchedule';
-import { DB } from '../../db/DB';
+import { IEvent } from '../../interfaces/main/IEvent';
+import { IPayloadSchedule } from '../../interfaces/main/IPayloadSchedule';
+import { DBGroups } from '../../db/Schemas/DBGroups';
+import { DBUserGroup } from '../../db/Schemas/DBUserGroup';
+import { DBUsers } from '../../db/Schemas/DBUsers';
+import { IDBGroup } from '../../interfaces/DB/DBGroup';
 
 export default class ScheduleSettingsEvent implements IEvent {
     public bot: VK;
-
+    private dbUsers: DBUsers; 
+    private dbGroups: DBGroups;
+    private dbUserGroup: DBUserGroup; 
+    
     constructor(bot: VK) {
         this.bot = bot;
+        this.dbGroups = new DBGroups();
+        this.dbUserGroup = new DBUserGroup();
+        this.dbUsers = new DBUsers();
     }
 
     name = "ScheduleSettingsEvent";
-    description = 'Настройка аккаунта';
-
-    async execute(context: MessageEventContext, db: DB): Promise<void> {
+   
+    async execute(context: MessageEventContext): Promise<void> {
         const payload: IPayloadSchedule = JSON.parse(context.eventPayload);
         try {
-            const group = [];
-            const user = await db.getUserById(payload.userID)
+            let group : null | IDBGroup = null;
+
+            const user = await this.dbUsers.getData(String(payload.userID))
+
             if(user) {
-                const userGroups = await db.getUserGroups(user.id);
-                if(userGroups.length > 0) {  
-                    group.push(await db.getGroupById(userGroups[0].group_id)) ;
+
+                const userGroups = await this.dbUserGroup.getData(user.id);
+                
+                if(userGroups) {  
+                    group = await this.dbGroups.getData(userGroups.group_id);
                 }
+
             }
         
-
             const keyboard = new KeyboardBuilder()
                 .callbackButton({
                     label: group ? 'Изменить группу' : 'Выбрать группу',
@@ -56,7 +68,7 @@ export default class ScheduleSettingsEvent implements IEvent {
                 message_id: Number(payload.messageID),
                 peer_id: Number(payload.peerID),
                 message: "Настройки расписания:\n" +
-                    "1. Ваша группа: " + (group.length > 0 ? group[0]?.name : "Не найдена") + "\n" +
+                    "1. Ваша группа: " + (group ? group.name : "Не найдена") + "\n" +
                     "2. Присылать расписание: " + "Нет" + "\n" +
                     "3. Уведомлять об изменениях: " + "Нет" + "\n",
                 keyboard: keyboard.inline()
@@ -71,3 +83,4 @@ export default class ScheduleSettingsEvent implements IEvent {
         }
     }
 }
+    
