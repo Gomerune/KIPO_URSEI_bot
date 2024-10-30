@@ -2,7 +2,6 @@
 import { MessageEventContext, VK, KeyboardBuilder } from 'vk-io';
 import { IEvent } from '../../interfaces/main/IEvent';
 import { IPayloadSchedule } from '../../interfaces/main/IPayloadSchedule';
-import { DB } from '../../db/DB';
 
 export default class ScheduleBackEvent implements IEvent {
     public bot: VK;

@@ -1,7 +1,7 @@
 import { KeyboardBuilder, MessageContext, VK } from 'vk-io';
 import { ICommand } from '../interfaces/main/ICommand';
 import { DBUsers } from '../db/Schemas/DBUsers'; 
-import { IDBUser } from '../interfaces/DB/DBUser';
+import { IDBUser } from '../interfaces/DB/IDBUser';
 
 export default class StartCommand implements ICommand {
     public name = "Старт"

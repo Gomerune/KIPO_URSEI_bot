@@ -1,9 +1,8 @@
-
 import { MessageEventContext, VK, KeyboardBuilder } from 'vk-io';
 import { IEvent } from '../../interfaces/main/IEvent';
 import { IPayloadSchedule } from '../../interfaces/main/IPayloadSchedule';
-import { DB } from '../../db/DB';
-import { IAPIData } from '../../interfaces/UresiAPI/IAPIData';
+import { DBFormEdu } from '../../db/Schemas/DBFormEdu';
+import { IDBFormEdu } from '../../interfaces/DB/IDBFormEdu';
 
 export default class SelectFormEduEvent implements IEvent {
     public bot: VK;
@@ -18,28 +17,16 @@ export default class SelectFormEduEvent implements IEvent {
     async execute(context: MessageEventContext): Promise<void> {
         const payload: IPayloadSchedule = JSON.parse(context.eventPayload);
         try {
-            const url = "https://api.ursei.su/public/schedule/rest/GetGSSchedIniData";
-            let data: IAPIData = { FormEdu: [] };
-            try {
-                const response = await fetch(url);
-                data = await response.json();
-            } catch (e) {
-                console.error('Ошибка при получении данных:', e);
-                await this.bot.api.messages.edit({
-                    message_id: Number(payload.messageID),
-                    peer_id: Number(payload.peerID),
-                    message: "Произошла ошибка при получении данных."
-                });
-                return;
-            }
+            const dbFormEdu = new DBFormEdu();
+            const formEdus: IDBFormEdu[] = await dbFormEdu.getAllData();
 
             const keyboard = new KeyboardBuilder()
                 .inline();
 
-            data.FormEdu.forEach(formEdu => {
+            formEdus.forEach(formEdu => {
                 keyboard.callbackButton({
-                    label: formEdu.FormEduName,
-                    payload: JSON.stringify({ command: 'SelectCourseEvent', userID: payload.userID, peerID: payload.peerID, messageID: payload.messageID, formEduID: formEdu.FormEdu_ID }),
+                    label: formEdu.name,
+                    payload: JSON.stringify({ command: 'SelectCourseEvent', userID: payload.userID, peerID: payload.peerID, messageID: payload.messageID, formEduID: formEdu.id }),
                     color: 'primary'
                 }).row();
             });
@@ -60,4 +47,3 @@ export default class SelectFormEduEvent implements IEvent {
         }
     }
 }
-    

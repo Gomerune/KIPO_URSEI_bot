@@ -1,22 +1,21 @@
-
 import { KeyboardBuilder, MessageEventContext, VK } from 'vk-io';
 import { IEvent } from '../../interfaces/main/IEvent';
 import { IPayloadSchedule } from '../../interfaces/main/IPayloadSchedule';
 import { DBUsers } from '../../db/Schemas/DBUsers'; 
 import { DBGroups } from '../../db/Schemas/DBGroups'; 
-import { DBUserGroup } from '../../db/Schemas/DBUserGroup';
+import { DBUserSettings } from '../../db/Schemas/DBUserSettings';
 
 export default class SaveGroupEvent implements IEvent {
     public bot: VK;
     private dbUsers: DBUsers; 
     private dbGroups: DBGroups;
-    private dbUserGroup: DBUserGroup; 
+    private dbUserSettings: DBUserSettings; 
 
     constructor(bot: VK) {
         this.bot = bot;
         this.dbUsers = new DBUsers();
         this.dbGroups = new DBGroups(); 
-        this.dbUserGroup = new DBUserGroup(); 
+        this.dbUserSettings = new DBUserSettings(); 
     }
 
     name = "SaveGroupEvent";
@@ -31,25 +30,31 @@ export default class SaveGroupEvent implements IEvent {
                 if (group) {
                     const member = await this.dbUsers.getData(String(payload.userID));
                     if (member) {
-                        const userGroup = await this.dbUserGroup.getData(member.id);
-                        if(userGroup){
-                            await this.dbUserGroup.setData(member.id, { user_id: member.id, group_id: group.id });
-                        } else {
-                            await this.dbUserGroup.addData({
+                        const userGroup = await this.dbUserSettings.getData(member.id);
+                        if (userGroup) {
+                            await this.dbUserSettings.setData(member.id, {
                                 user_id: member.id,
-                                group_id: group.id
+                                group_id: group.id,
+                                notifications_enabled: userGroup.notifications_enabled,
+                                weekly_schedule_enabled: userGroup.weekly_schedule_enabled
+                            });
+                        } else {
+                            await this.dbUserSettings.addData({
+                                user_id: member.id,
+                                group_id: group.id,
+                                notifications_enabled: false,
+                                weekly_schedule_enabled: false
                             });
                         }
 
-                        
-                    const keyboard = new KeyboardBuilder()
-                    .inline()
-                    .row()
-                    .callbackButton({
-                        label: 'В начало',
-                        payload: JSON.stringify({ command: 'ScheduleBackEvent', userID: payload.userID, messageID: payload.messageID, peerID: payload.peerID, action: "cancel_schedule" }),
-                        color: 'negative'
-                    });
+                        const keyboard = new KeyboardBuilder()
+                            .inline()
+                            .row()
+                            .callbackButton({
+                                label: 'В начало',
+                                payload: JSON.stringify({ command: 'ScheduleBackEvent', userID: payload.userID, messageID: payload.messageID, peerID: payload.peerID, action: "cancel_schedule" }),
+                                color: 'negative'
+                            });
 
                         await this.bot.api.messages.edit({
                             message_id: Number(payload.messageID),
@@ -88,4 +93,3 @@ export default class SaveGroupEvent implements IEvent {
         }
     }
 }
-

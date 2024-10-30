@@ -1,6 +1,7 @@
-export interface IDBEntity {
-    getData(id: string | number): Promise<any | null>;
-    setData(id: string | number, entity: any): Promise<void>;
+export interface IDBEntity<T> {
+    getData(id: string | number): Promise<T | null>;
+    setData(id: string | number, entity: T): Promise<void>;
     deleteData(id: string | number): Promise<void>;
-    addData(entity: any): Promise<void>;
+    addData(entity: T): Promise<void>;
+    getAllData(): Promise<T[]>;
 }

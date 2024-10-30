@@ -8,39 +8,62 @@ export class DB {
     protected db: sqlite3.Database;
 
     constructor(private dbPath: string) {
-        if (!fs.existsSync(dbPath)) {
-            this.db = new sqlite3.Database(dbPath);
-            this.init();
-        } else {
-            this.db = new sqlite3.Database(dbPath);
-        }
+        this.db = new sqlite3.Database(dbPath);
     }
 
     private async init(): Promise<void> {
         await this.run(`
-            CREATE TABLE IF NOT EXISTS users (
+            CREATE TABLE IF NOT EXISTS Users (
                 id INTEGER PRIMARY KEY NOT NULL UNIQUE,
                 username TEXT
             )
         `);
-
+    
         await this.run(`
-            CREATE TABLE IF NOT EXISTS user_group (
+            CREATE TABLE IF NOT EXISTS User_settings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                group_id INTEGER NOT NULL,
                 user_id INTEGER NOT NULL,
-                FOREIGN KEY(user_id) REFERENCES users(id),
-                FOREIGN KEY(group_id) REFERENCES groups(id)
+                group_id INTEGER NOT NULL,
+                notifications_enabled BOOLEAN NOT NULL DEFAULT 0,
+                weekly_schedule_enabled BOOLEAN NOT NULL DEFAULT 0,
+                FOREIGN KEY(user_id) REFERENCES Users(id),
+                FOREIGN KEY(group_id) REFERENCES Groups(id)
             )
         `);
-
+    
         await this.run(`
-            CREATE TABLE IF NOT EXISTS groups (
+            CREATE TABLE IF NOT EXISTS Groups (
                 id INTEGER PRIMARY KEY NOT NULL UNIQUE,
                 name TEXT
             )
         `);
-
+    
+        await this.run(`
+            CREATE TABLE IF NOT EXISTS FormEdu (
+                id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+                name TEXT NOT NULL
+            )
+        `);
+    
+        await this.run(`
+            CREATE TABLE IF NOT EXISTS Curs (
+                id INTEGER PRIMARY KEY NOT NULL UNIQUE,
+                name TEXT NOT NULL
+            )
+        `);
+    
+        await this.run(`
+            CREATE TABLE IF NOT EXISTS CursGroup (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                curs_id INTEGER NOT NULL,
+                group_id INTEGER NOT NULL,
+                form_edu_id INTEGER NOT NULL,
+                FOREIGN KEY(curs_id) REFERENCES Curs(id),
+                FOREIGN KEY(group_id) REFERENCES Groups(id),
+                FOREIGN KEY(form_edu_id) REFERENCES FormEdu(id)
+            )
+        `);
+    
         await this.populateGroups();
     }
 
@@ -68,7 +91,7 @@ export class DB {
         });
     }
 
-    private async all(query: string, params: any[] = []): Promise<any[]> {
+    protected async all(query: string, params: any[] = []): Promise<any[]> {
         return new Promise<any[]>((resolve, reject) => {
             this.db.all(query, params, (err, rows) => {
                 if (err) {
@@ -104,11 +127,28 @@ export class DB {
     
             bar.start(groups.length, 0);
     
-            for (const group of groups) {
+            for (const formEdu of data.FormEdu) {
                 await this.run(`
-                    INSERT OR IGNORE INTO groups (id, name) VALUES (?, ?)
-                `, [group.GS_ID, group.GSName]);
-                bar.increment();
+                    INSERT OR IGNORE INTO FormEdu (id, name) VALUES (?, ?)
+                `, [formEdu.FormEdu_ID, formEdu.FormEduName]);
+    
+                for (const course of formEdu.arr) {
+                    await this.run(`
+                        INSERT OR IGNORE INTO Curs (id, name) VALUES (?, ?)
+                    `, [course.Curs, `Курс ${course.Curs}`]);
+    
+                    for (const group of course.arr) {
+                        await this.run(`
+                            INSERT OR IGNORE INTO Groups (id, name) VALUES (?, ?)
+                        `, [group.GS_ID, group.GSName]);
+    
+                        await this.run(`
+                            INSERT OR IGNORE INTO CursGroup (curs_id, group_id, form_edu_id) VALUES (?, ?, ?)
+                        `, [course.Curs, group.GS_ID, formEdu.FormEdu_ID]);
+    
+                        bar.increment();
+                    }
+                }
             }
     
             bar.stop();
@@ -120,7 +160,7 @@ export class DB {
     }
 
     public async validateDatabase(): Promise<void> {
-        const requiredTables = ['users', 'user_group', 'groups'];
+        const requiredTables = ['Users', 'User_settings', 'Groups', 'FormEdu', 'Curs', 'CursGroup'];
         const missingTables: string[] = [];
 
         for (const table of requiredTables) {
@@ -143,14 +183,14 @@ export class DB {
             const data: IAPIData = await response.json();
             const groups: IAPIGroup[] = flattenGroups(data);
 
-            const dbGroups = await this.all(`SELECT id FROM groups`);
+            const dbGroups = await this.all(`SELECT id FROM Groups`);
             const dbGroupIds = dbGroups.map(group => group.id);
 
             const missingGroups = groups.filter(group => !dbGroupIds.includes(group.GS_ID));
 
             if (missingGroups.length > 0) {
                 console.error(`Отсутствуют группы в базе данных: ${missingGroups.map(g => g.GSName).join(', ')}`);
-                await this.populateGroups()
+                await this.populateGroups();
             } else {
                 console.log('\x1b[32mВсе группы из API присутствуют в базе данных.\x1b[0m');
             }

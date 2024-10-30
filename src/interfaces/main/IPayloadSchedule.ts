@@ -1,12 +1,12 @@
 export interface IPayloadSchedule {
     command: string;
     userID: number;
-    messageID: number;
     peerID: number;
-    action?: string;
+    messageID: number;
     formEduID?: number;
     courseID?: number;
-    groupName?: string;
     groupID?: number;
-    page?: number; 
+    groupName?: string;
+    page?: number;
+    action?: string;
 }
